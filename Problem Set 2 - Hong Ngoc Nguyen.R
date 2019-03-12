@@ -334,23 +334,27 @@ lsup<-data_00 %>%
   group_by(year,sex,exp,edlvl) %>%
   summarise(labsup = log(mean(wkswork)))
 
+# The fixed set of wage weights for 1963-2008 are constructed using the average wage in each of 
+# the 490 cells (2 sexes, 5 education groups, 49 experience groups) over this time period.
+
 avgwage <-data_00%>%
   group_by(year,sex,exp,edlvl) %>%
   summarise(wwage = mean(rwage))
 
-relw <-avgwage%>%
+# Construct fixed relative average wage weights for each cell
+avgwage2 <-avgwage%>%
   group_by(year)%>%
   summarise(ywage = mean(wwage))
 
-avgwage <- merge(x= avgwage, y = relw, by = c("year"))
+avgwage <- merge(x= avgwage, y = avgwage2, by = c("year"))
 
 avgwage <- avgwage%>%
-  mutate(relwage = wwage/ywage)
+  mutate(weight = wwage/ywage)
 
 lsupavgwage <- merge(x=lsup,y=avgwage,by=c("year","sex","exp","edlvl"))
 
 lsupavgwage <-lsupavgwage%>%
-  mutate(sindex = lsupavgwage$labsup * lsupavgwage$relwage)
+  mutate(sindex = lsupavgwage$labsup * lsupavgwage$weight)
 
 supindex<- lsupavgwage%>%
   group_by(year)%>%
