@@ -318,3 +318,46 @@ ggplot(data = figure1) +
   ggtitle('Compositiion adjusted college/high-school log weekly wage ratio, 1963-2008')
 
 
+
+# FIGURE 2
+
+
+# Create the categorical variable of education level (edlvl)
+data_00 <- data_00 %>%      
+  mutate(edlvl = ifelse(deduc_1==1,1,ifelse(deduc_2==1,3,ifelse(deduc_3==1,4,ifelse(deduc_4==1,5,2)))))
+attach(data_00)
+
+
+
+# Calculate the labor supply for college/high school groups by experience level
+lsup<-data_00 %>%
+  group_by(year,sex,exp,edlvl) %>%
+  summarise(labsup = log(mean(wkswork)))
+
+avgwage <-data_00%>%
+  group_by(year,sex,exp,edlvl) %>%
+  summarise(wwage = mean(rwage))
+
+relw <-avgwage%>%
+  group_by(year)%>%
+  summarise(ywage = mean(wwage))
+
+avgwage <- merge(x= avgwage, y = relw, by = c("year"))
+
+avgwage <- avgwage%>%
+  mutate(relwage = wwage/ywage)
+
+lsupavgwage <- merge(x=lsup,y=avgwage,by=c("year","sex","exp","edlvl"))
+
+lsupavgwage <-lsupavgwage%>%
+  mutate(sindex = lsupavgwage$labsup * lsupavgwage$relwage)
+
+supindex<- lsupavgwage%>%
+  group_by(year)%>%
+  summarise(index = log(mean(sindex)))
+
+ggplot(data = supindex)+ 
+  geom_point(mapping = aes(x = year, y = log(index))) +
+  geom_line(mapping = aes(x = year, y = log(index)))+
+  ggtitle('College/high-school log relative supply')
+
