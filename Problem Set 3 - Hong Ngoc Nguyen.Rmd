@@ -1,0 +1,394 @@
+---
+title: "Problem Set 3 - Hong Ngoc Nguyen"
+author: "Hong Ngoc Nguyen"
+date: "18 March 2019"
+output: pdf_document
+---
+
+## Select the entire time period, 1963-2017. Report the regression result.
+
+```{r 1963_2017}
+# Select the entire time period, 1963-2017
+
+library(tidyverse)
+data_01 <- read.csv(file="data_01.csv",head=TRUE)
+
+
+attach(data_01)
+
+# Select the male sample 
+data_01 <- data_01 %>%
+  filter(sex == 1)
+
+hs <- matrix(0,54,1)
+col <- matrix(0,54,1)
+hsdrop <- matrix(0,54,1)
+somecol <- matrix(0,54,1)
+hs_equi <- matrix(0,54,1)
+col_equi <- matrix(0,54,1)
+relsup <- matrix(0,54,1)
+logw1w2 <- matrix(0,54,1)
+
+for (i in 1:54)
+{
+  # quantity of high school graduates 
+  hs[i] <- sum(with(data_01, deduc_1 == 0 & deduc_2 == 0 & deduc_3 == 0 & deduc_4 == 0 & year==1963+i))
+  
+  w_hs <- mean(rwage[deduc_1 == 0 & deduc_2 == 0 & deduc_3 == 0 & deduc_4 == 0]) #weight
+  
+  # quantity of college graduates 
+  col[i] <- sum(with(data_01, (deduc_3 == 1 | deduc_4 == 1)  & year==1963+i))
+  
+  w_col <- mean(rwage[deduc_3 == 1 | deduc_4 == 1]) #weight
+  
+  # quantity of high school dropout
+  hsdrop[i] <- sum(with(data_01, deduc_1 == 1  & year==1963+i))
+  
+  w_hsdrop <- mean(rwage[deduc_1 == 1]) #weight
+  
+  # quantity of some college
+  somecol[i] <- sum(with(data_01, deduc_2 == 1 & year==1963+i))
+  
+  w_somecol <- mean(rwage[deduc_2 == 1]) #weight
+  
+  
+  # aggregate labor inputs of high school equivalent
+  #hs_equi <- hs + 0.69*somecol + 0.93*hsdrop
+  hs_equi[i] <- hs[i]*w_hs + 0.69*somecol[i]*w_somecol + 0.93*hsdrop[i]*w_hsdrop
+  
+  # aggregate labor inputs of college equivalent
+  #col_equi <- col + 0.29*somecol - 0.05*hsdrop
+  col_equi[i] <- col[i]*w_col + 0.29*somecol[i]*w_somecol - 0.05*hsdrop[i]*w_hsdrop
+  
+  # relative supply
+  relsup[i] <- col_equi[i]/hs_equi[i]
+  logw1w2[i] <- log(relsup[i])
+}
+
+# Calculate the relative college/high school wage ratio
+
+# Create the five-year experience brackets
+data_01 <- data_01 %>%
+  mutate(expbr = ifelse(exp <= 5, 1, NA)) %>%
+  mutate(expbr = ifelse(exp > 5 & exp <= 10, 2, expbr)) %>%
+  mutate(expbr = ifelse(exp > 10 & exp <= 15, 3, expbr)) %>%
+  mutate(expbr = ifelse(exp > 15 & exp <= 20, 4, expbr)) %>%
+  mutate(expbr = ifelse(exp > 20 & exp <= 25, 5, expbr)) %>%
+  mutate(expbr = ifelse(exp > 25 & exp <= 30, 6, expbr)) %>%
+  mutate(expbr = ifelse(exp > 30 & exp <= 35, 7, expbr)) %>%
+  mutate(expbr = ifelse(exp > 35, 8, expbr)) 
+
+# college/high school wage ratio
+
+m_wageratio <- matrix(0,54,8)
+m_share <- matrix(0,54,8)
+m_weight <- matrix(0,8,1)
+m_wwage <- matrix(0,54,8)
+relwage <- matrix(0,54,1)
+logx1x2 <- matrix(0,54,1)
+
+attach(data_01)
+
+for (i in 1:54)
+{
+  for (j in 1:8)
+  {
+    #male
+    
+    # ratio of the average weekly wage of college graduates to the average weekly wage of high school graduates
+    m_wageratio[i,j] <- mean(rwage[(deduc_3 == 1 | deduc_4 == 1) & year==1963+i & expbr==j & sex==1])/mean(rwage[deduc_1 == 0 & deduc_2 == 0 & deduc_3 == 0 & deduc_4 == 0 & year==1963+i & expbr==j & sex==1])
+    
+    # The fixed weight for each cell is the cell's average share of total employment over the period
+    m_share[i,j] <- sum(wkswork[year==1963+i & expbr==j & sex==1])/sum(wkswork[year==1963+i])
+    m_weight[j] <- mean(m_share[1:54,j])
+    
+    m_wwage[i,j] <- m_wageratio[i,j] * m_weight[j] #weighted wage
+    
+    #female
+    #f_wageratio[i,j] <- mean(rwage[(deduc_3 == 1 | deduc_4 == 1) & year==1963+i & expbr==j & sex==2])/mean(rwage[deduc_1 == 0 & deduc_2 == 0 & deduc_3 == 0 & deduc_4 == 0 & year==1963+i & expbr==j & sex==2])
+    #f_share[i,j] <- sum(wkswork[year==1963+i & expbr==j & sex==2])/sum(wkswork[year==1963+i])
+    #f_weight[j] <- mean(f_share[1:54,j])
+    
+    #f_wwage[i,j] <- f_wageratio[i,j] * f_weight[j] #weighted wage
+  }
+  
+  # The overall college/high school wage ratio
+  
+  #relwage[i] <- sum(m_wwage[i,1:8])+sum(f_wwage[i,1:8])
+  relwage[i] <- sum(m_wwage[i,1:8])
+  logx1x2[i] <- log(relwage[i])
+}
+
+# time trend
+
+time=array(1:54,dim = c(54,1))
+
+# the regression of the Equation (19) in Katz and Murphy (1992)
+m1 <- lm(logw1w2 ~ logx1x2 + time)
+coef(m1)
+summary(m1)
+```
+
+## Select the same time period as Katz and Murphy (1992), 1963-1987
+
+```{r 1963_1987, warning=FALSE}
+# Select the same time period as Katz and Murphy (1992), 1963-1987
+
+library(tidyverse)
+data_01 <- read.csv(file="data_01.csv",head=TRUE)
+
+attach(data_01)
+
+# Select the male sample 
+data_01 <- data_01 %>%
+  filter(sex == 1)
+
+hs <- matrix(0,24,1)
+col <- matrix(0,24,1)
+hsdrop <- matrix(0,24,1)
+somecol <- matrix(0,24,1)
+hs_equi <- matrix(0,24,1)
+col_equi <- matrix(0,24,1)
+relsup <- matrix(0,24,1)
+logw1w2 <- matrix(0,24,1)
+
+for (i in 1:24)
+{
+  # quantity of high school graduates 
+  hs[i] <- sum(with(data_01, deduc_1 == 0 & deduc_2 == 0 & deduc_3 == 0 & deduc_4 == 0 & year==1963+i))
+  
+  w_hs <- mean(rwage[deduc_1 == 0 & deduc_2 == 0 & deduc_3 == 0 & deduc_4 == 0]) #weight
+  
+  # quantity of college graduates 
+  col[i] <- sum(with(data_01, (deduc_3 == 1 | deduc_4 == 1)  & year==1963+i))
+  
+  w_col <- mean(rwage[deduc_3 == 1 | deduc_4 == 1]) #weight
+  
+  # quantity of high school dropout
+  hsdrop[i] <- sum(with(data_01, deduc_1 == 1  & year==1963+i))
+  
+  w_hsdrop <- mean(rwage[deduc_1 == 1]) #weight
+  
+  # quantity of some college
+  somecol[i] <- sum(with(data_01, deduc_2 == 1 & year==1963+i))
+  
+  w_somecol <- mean(rwage[deduc_2 == 1]) #weight
+  
+  
+  # aggregate labor inputs of high school equivalent
+  #hs_equi <- hs + 0.69*somecol + 0.93*hsdrop
+  hs_equi[i] <- hs[i]*w_hs + 0.69*somecol[i]*w_somecol + 0.93*hsdrop[i]*w_hsdrop
+  
+  # aggregate labor inputs of college equivalent
+  #col_equi <- col + 0.29*somecol - 0.05*hsdrop
+  col_equi[i] <- col[i]*w_col + 0.29*somecol[i]*w_somecol - 0.05*hsdrop[i]*w_hsdrop
+  
+  # relative supply
+  relsup[i] <- col_equi[i]/hs_equi[i]
+  logw1w2[i] <- log(relsup[i])
+}
+
+# Calculate the relative college/high school wage ratio
+
+# Create the five-year experience brackets
+data_01 <- data_01 %>%
+  mutate(expbr = ifelse(exp <= 5, 1, NA)) %>%
+  mutate(expbr = ifelse(exp > 5 & exp <= 10, 2, expbr)) %>%
+  mutate(expbr = ifelse(exp > 10 & exp <= 15, 3, expbr)) %>%
+  mutate(expbr = ifelse(exp > 15 & exp <= 20, 4, expbr)) %>%
+  mutate(expbr = ifelse(exp > 20 & exp <= 25, 5, expbr)) %>%
+  mutate(expbr = ifelse(exp > 25 & exp <= 30, 6, expbr)) %>%
+  mutate(expbr = ifelse(exp > 30 & exp <= 35, 7, expbr)) %>%
+  mutate(expbr = ifelse(exp > 35, 8, expbr)) 
+
+# college/high school wage ratio
+
+m_wageratio <- matrix(0,24,8)
+m_share <- matrix(0,24,8)
+m_weight <- matrix(0,8,1)
+m_wwage <- matrix(0,24,8)
+relwage <- matrix(0,24,1)
+logx1x2 <- matrix(0,24,1)
+
+for (i in 1:24)
+{
+  for (j in 1:8)
+  {
+    #male
+    m_wageratio[i,j] <- mean(rwage[(deduc_3 == 1 | deduc_4 == 1) & year==1963+i & expbr==j & sex==1])/mean(rwage[deduc_1 == 0 & deduc_2 == 0 & deduc_3 == 0 & deduc_4 == 0 & year==1963+i & expbr==j & sex==1])
+    m_share[i,j] <- sum(wkswork[year==1963+i & expbr==j & sex==1])/sum(wkswork[year==1963+i])
+    m_weight[j] <- mean(m_share[1:24,j])
+    
+    m_wwage[i,j] <- m_wageratio[i,j] * m_weight[j] #weighted wage
+    
+    #female
+    #f_wageratio[i,j] <- mean(rwage[(deduc_3 == 1 | deduc_4 == 1) & year==1963+i & expbr==j & sex==2])/mean(rwage[deduc_1 == 0 & deduc_2 == 0 & deduc_3 == 0 & deduc_4 == 0 & year==1963+i & expbr==j & sex==2])
+    #f_share[i,j] <- sum(wkswork[year==1963+i & expbr==j & sex==2])/sum(wkswork[year==1963+i])
+    #f_weight[j] <- mean(f_share[1:24,j])
+    
+    #f_wwage[i,j] <- f_wageratio[i,j] * f_weight[j] #weighted wage
+  }
+  
+  #relwage[i] <- sum(m_wwage[i,1:8])+sum(f_wwage[i,1:8])
+  relwage[i] <- sum(m_wwage[i,1:8])
+  logx1x2[i] <- log(relwage[i])
+}
+
+# time trend
+
+time=array(1:24,dim = c(24,1))
+
+# the regression of the Equation (19) in Katz and Murphy (1992)
+m1 <- lm(logw1w2 ~ logx1x2 + time)
+coef(m1)
+summary(m1)
+```
+
+This result is different from Katz and Murphy (1992) since we select only the male sample while they combined both males and females.
+
+## Select the later period, 1988-2017
+
+```{r 1988_2017, warning=FALSE}
+# Select the later period, 1988-2017
+
+library(tidyverse)
+data_01 <- read.csv(file="data_01.csv",head=TRUE)
+
+
+attach(data_01)
+
+# Select the male sample 
+data_01 <- data_01 %>%
+  filter(sex == 1)
+
+hs <- matrix(0,30,1)
+col <- matrix(0,30,1)
+hsdrop <- matrix(0,30,1)
+somecol <- matrix(0,30,1)
+hs_equi <- matrix(0,30,1)
+col_equi <- matrix(0,30,1)
+relsup <- matrix(0,30,1)
+logw1w2 <- matrix(0,30,1)
+
+for (i in 1:30)
+{
+  # quantity of high school graduates 
+  hs[i] <- sum(with(data_01, deduc_1 == 0 & deduc_2 == 0 & deduc_3 == 0 & deduc_4 == 0 & year==1987+i))
+  
+  w_hs <- mean(rwage[deduc_1 == 0 & deduc_2 == 0 & deduc_3 == 0 & deduc_4 == 0]) #weight
+  
+  # quantity of college graduates 
+  col[i] <- sum(with(data_01, (deduc_3 == 1 | deduc_4 == 1)  & year==1987+i))
+  
+  w_col <- mean(rwage[deduc_3 == 1 | deduc_4 == 1]) #weight
+  
+  # quantity of high school dropout
+  hsdrop[i] <- sum(with(data_01, deduc_1 == 1  & year==1987+i))
+  
+  w_hsdrop <- mean(rwage[deduc_1 == 1]) #weight
+  
+  # quantity of some college
+  somecol[i] <- sum(with(data_01, deduc_2 == 1 & year==1987+i))
+  
+  w_somecol <- mean(rwage[deduc_2 == 1]) #weight
+  
+  
+  # aggregate labor inputs of high school equivalent
+  #hs_equi <- hs + 0.69*somecol + 0.93*hsdrop
+  hs_equi[i] <- hs[i]*w_hs + 0.69*somecol[i]*w_somecol + 0.93*hsdrop[i]*w_hsdrop
+  
+  # aggregate labor inputs of college equivalent
+  #col_equi <- col + 0.29*somecol - 0.05*hsdrop
+  col_equi[i] <- col[i]*w_col + 0.29*somecol[i]*w_somecol - 0.05*hsdrop[i]*w_hsdrop
+  
+  # relative supply
+  relsup[i] <- col_equi[i]/hs_equi[i]
+  logw1w2[i] <- log(relsup[i])
+}
+
+# Calculate the relative college/high school wage ratio
+
+# Create the five-year experience brackets
+data_01 <- data_01 %>%
+  mutate(expbr = ifelse(exp <= 5, 1, NA)) %>%
+  mutate(expbr = ifelse(exp > 5 & exp <= 10, 2, expbr)) %>%
+  mutate(expbr = ifelse(exp > 10 & exp <= 15, 3, expbr)) %>%
+  mutate(expbr = ifelse(exp > 15 & exp <= 20, 4, expbr)) %>%
+  mutate(expbr = ifelse(exp > 20 & exp <= 25, 5, expbr)) %>%
+  mutate(expbr = ifelse(exp > 25 & exp <= 30, 6, expbr)) %>%
+  mutate(expbr = ifelse(exp > 30 & exp <= 35, 7, expbr)) %>%
+  mutate(expbr = ifelse(exp > 35, 8, expbr)) 
+
+# college/high school wage ratio
+
+m_wageratio <- matrix(0,30,8)
+m_share <- matrix(0,30,8)
+m_weight <- matrix(0,8,1)
+m_wwage <- matrix(0,30,8)
+relwage <- matrix(0,30,1)
+logx1x2 <- matrix(0,30,1)
+
+
+for (i in 1:30)
+{
+  for (j in 1:8)
+  {
+    #male
+    
+    # ratio of the average weekly wage of college graduates to the average weekly wage of high school graduates
+    m_wageratio[i,j] <- mean(rwage[(deduc_3 == 1 | deduc_4 == 1) & year==1987+i & expbr==j & sex==1])/mean(rwage[deduc_1 == 0 & deduc_2 == 0 & deduc_3 == 0 & deduc_4 == 0 & year==1987+i & expbr==j & sex==1])
+    
+    # The fixed weight for each cell is the cell's average share of total employment over the period
+    m_share[i,j] <- sum(wkswork[year==1987+i & expbr==j & sex==1])/sum(wkswork[year==1987+i])
+    m_weight[j] <- mean(m_share[1:30,j])
+    
+    m_wwage[i,j] <- m_wageratio[i,j] * m_weight[j] #weighted wage
+    
+    #female
+    #f_wageratio[i,j] <- mean(rwage[(deduc_3 == 1 | deduc_4 == 1) & year==1987+i & expbr==j & sex==2])/mean(rwage[deduc_1 == 0 & deduc_2 == 0 & deduc_3 == 0 & deduc_4 == 0 & year==1987+i & expbr==j & sex==2])
+    #f_share[i,j] <- sum(wkswork[year==1987+i & expbr==j & sex==2])/sum(wkswork[year==1987+i])
+    #f_weight[j] <- mean(f_share[1:30,j])
+    
+    #f_wwage[i,j] <- f_wageratio[i,j] * f_weight[j] #weighted wage
+  }
+  
+  # The overall college/high school wage ratio
+  
+  #relwage[i] <- sum(m_wwage[i,1:8])+sum(f_wwage[i,1:8])
+  relwage[i] <- sum(m_wwage[i,1:8])
+  logx1x2[i] <- log(relwage[i])
+}
+
+# time trend
+
+time=array(1:30,dim = c(30,1))
+
+# the regression of the Equation (19) in Katz and Murphy (1992)
+m1 <- lm(logw1w2 ~ logx1x2 + time)
+coef(m1)
+summary(m1)
+```
+
+The result from the period 1988-2017 shows that the relative (college/high school) supply has a negative impact on the relative (college/high school) wage ratio. This is in stark contrast to the result from the earlier period (1963-1987), which indicates that the relative supply has a positive and significant impact on the relative wage ratio.
+
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
