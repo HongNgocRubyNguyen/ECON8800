@@ -1,0 +1,294 @@
+\documentclass[10pt]{beamer}
+%\usetheme{hannover}
+%\useinnertheme{circles}
+\setbeamertemplate{footline}[page number]
+
+
+\usepackage[english]{babel}
+\usepackage{dsfont}
+\usepackage[latin1]{inputenc}
+\usepackage{amssymb}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+
+
+\newif\ifpdf
+\ifx\pdfoutput\undefined
+   \pdffalse
+\else
+   \pdfoutput=1
+   \pdftrue
+\fi
+\ifpdf
+   \usepackage{graphicx}
+   \usepackage{epstopdf}
+   \DeclareGraphicsRule{.eps}{pdf}{.pdf}{`epstopdf #1}
+   \pdfcompresslevel=9
+\else
+   \usepackage{graphicx}
+\fi
+
+
+
+
+
+\title[Temp]{\textsc{The Macrodynamics of Sorting between Workers and Firms}}
+
+\subtitle{\textsc{Lise and Robin} (2017)}
+
+\author{\textit{Presented by:} Hong Ngoc Nguyen}
+
+\date{March 27, 2019}
+
+
+\begin{document}
+ 
+\begin{frame}
+  \titlepage
+\end{frame}
+
+
+\begin{frame}{Introduction}
+
+This paper:
+
+\begin{itemize}
+\item develops an equilibrium model of on-the-job search with heterogeneous workers and firms and aggregate uncertainty.
+
+\item proves that the model is very tractable.
+
+\item illustrates the quantitative implications of the model by fitting to US aggregate labor market data from 1951-2012.
+
+\item has rich implications for the cyclical dynamics of the distribution of vacancies, unemployed workers, and sorting between heterogeneous workers and firms.
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Advantages}
+
+\begin{itemize}
+\item w.r.t. existing equilibrium search models with heterogeneity: stochastic model is developed.
+
+\item w.r.t. the directed search model: 
+	\begin{itemize}
+	\item two-sided heterogeneity is easily introduced; 
+	\item search frictions generate mismatch at the equilibrium; 
+	\item workers search on the job and employers counter outside offers; 
+	\item decisions about wages and matching are separated.
+	\end{itemize}
+
+\item w.r.t. wage-posting models: how different workers match with different firms and the interaction between heterogeneity and aggregate shocks are described.
+
+
+\end{itemize}
+
+\end{frame}
+
+
+
+
+\begin{frame}{Model}
+
+\begin{itemize}
+\item Heterogeneous workers $x$ and firms $y$; aggregate state $z_t$
+
+\item $B_t(x)$: \textbf{\textit{value of unemployment}} to worker $x$ at $t$ 
+\item $b(x, z_t)$: how much an unemployed worker $x$ earns at $t$ 
+\item $W_{0, t}(x, y)$: value to worker $x$ hired from unemployment by firm $y$; $W_{0, t}(x, y) = B_t(x)$
+
+\end{itemize}
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{Eq1}
+  \end{figure}
+
+\begin{itemize}
+
+ \begin{footnotesize}
+
+\item $\lambda_t$: probability an unemployed searcher contacts a vacancy
+\item $v_t(y)$: number of job opportunities chosen by firm $y$; $V_t = \int v_t(y) dy$
+
+ \end{footnotesize}
+
+\end{itemize}
+
+\end{frame}
+
+
+
+\begin{frame}{Model}
+
+\begin{itemize}
+
+\item $P_t(x, y)$: continuation \textbf{\textit{value of a match}} $(x, y)$; $p(x, y, z_t)$ at $t$
+
+\end{itemize}
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{Eq2}
+  \end{figure}
+
+\begin{itemize}
+
+
+\item Incumbent and poaching firms engage in Bertrand competition which grants the worker the second highest bid.
+
+	\begin{itemize} 
+	\begin{footnotesize}
+	\item If $P_{t+1}(x, y^\prime) >  P_{t+1}(x, y)$: $x$ moves to firm $y^\prime$ and receives $W_{1, {t+1}}(x, y^\prime, y) =  P_{t+1}(x, y)$; 
+	\item If $P_{t+1}(x, y^\prime ) \leq  P_{t+1}(x, y)$: $x$ stays with firm $y$ and receives $W_{1, {t+1}}(x, y, y^\prime) =  P_{t+1}(x, y^\prime)$
+	\end{footnotesize}
+	\end{itemize}
+	
+\end{itemize}
+
+\end{frame}
+
+
+
+\begin{frame}{Model}
+
+\begin{itemize}
+\item \textbf{\textit{Match surplus}}: $S_t(x, y) = P_t(x, y) - B_t(x)$
+\end{itemize}
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{Eq3}
+  \end{figure}
+
+\begin{itemize}
+\item The surplus depends on time only through $z_t$ and does not depend on the distributions of vacancies, unemployed workers, or worker-firm matches. 
+\item Outside offers do not change the size of the match surplus. 
+\item The surplus function fully characterizes the mobility decision of workers.
+	
+	\begin{itemize}
+	\item For an unemployed worker: A match is formed if $S(x, y, z) > 0$
+	\item For an employed worker: Poaching is successful if $S(x, y, z) > S(x, y^\prime, z)$ 
+	\end{itemize}
+
+\end{itemize}
+
+\end{frame}
+
+
+
+
+
+
+\begin{frame}{Fit}
+
+\begin{itemize}
+{\small \item Fit the model to moments of US time series data from 1951:I to 2012:IV}
+
+\end{itemize}
+
+\begin{figure}
+    \includegraphics[width=0.7\textwidth]{Fig1}
+  \end{figure}
+  
+\end{frame}
+
+
+
+\begin{frame}{Job Creation and Job Separation}
+
+\begin{figure}
+    \includegraphics[width=0.8\textwidth]{Fig3}
+  \end{figure}
+
+\begin{itemize}
+\begin{small}
+\item Moving from a boom to a recession, the number of vacancies contracts everywhere, esp in low-type vacancies 
+\item Overall, market production is substantially higher than home production, esp in high state => more posted vacancies
+\item When home production is very close to market production, more in the low state, mismatched workers are at risk of endogenous separation
+\end{small}
+
+\end{itemize}
+
+\end{frame}
+
+
+
+\begin{frame}{Feasible Matches and Sorting}
+
+\begin{figure}
+    \includegraphics[width=0.6\textwidth]{Fig4}
+  \end{figure}
+
+\begin{itemize}
+\begin{small}
+\item The matching set is cone-shaped and sorting is strongly positive.
+\item Lower-type workers have fewer employment opportunities, and workers with shorter employment tenure are more cyclically sensitive.
+\item The firms' minimum worker type fluctuates substantially less than the workers' lowest firm type =>  matches between low-type firms and high-type workers are most at risk of endogenous separations.
+
+\end{small}
+\end{itemize}
+
+\end{frame}
+
+
+
+
+\begin{frame}{Equilibrium Distribution of Matches }
+
+\begin{figure}
+    \includegraphics[width=0.9\textwidth]{Fig5}
+  \end{figure}
+
+\begin{itemize}
+\begin{small}
+\item Substantial mass along the boundary relating to the firms' minimum worker type.
+\item Fewer matches at the boundary in the good states: workers move more quickly to their preferred matches through on-the-job search.
+\item On-the-job search results in the second ridge, the center of which corresponds to the optimal job for each worker.
+\end{small}
+
+\end{itemize}
+
+\end{frame}
+
+
+
+
+\begin{frame}{Business-Cycle Dynamics of Matches}
+
+\begin{figure}
+    \includegraphics[width=0.68\textwidth]{Fig6}
+  \end{figure}
+
+\end{frame}
+
+
+
+\begin{frame}{Business-Cycle Dynamics of Matches}
+
+\begin{itemize}
+\begin{small}
+\item Employment share: Expansion is largely the result of  low-/medium-type worker, low-type firm pairs.
+\item Job separation rate: Low-type workers are the most susceptible in recession, esp those matched with high-type firms; High-type workers are completely shielded.
+\item Share of hires: In recession, low-type firms hire less and medium-/high-type firms hire relatively more medium-/high-type unemployed workers.
+\end{small}
+ 
+\end{itemize}
+
+\end{frame}
+ 
+ 
+
+
+\begin{frame}{Extension}
+
+\begin{itemize}
+\item This model does not make any predictions about wages 
+\item => Is this model able to also match wage data? 
+\item => incorporate more direct empirical measures of worker and firm heterogeneity, such as measures based on education, occupation, wages, value added, and other conditional measures available in matched employer-employee data.
+ 
+\end{itemize}
+
+\end{frame}
+ 
+ 
+\end{document}
+
+
